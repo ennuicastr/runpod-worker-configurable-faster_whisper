@@ -11,6 +11,7 @@ from runpod.serverless.utils import download_files_from_urls, rp_cleanup, rp_deb
 from runpod.serverless.utils.rp_validator import validate
 import runpod
 import predict
+import base64
 
 
 MODEL = predict.Predictor()
@@ -38,7 +39,12 @@ def run_whisper_job(job):
         job_input = input_validation['validated_input']
 
     with rp_debugger.LineTimer('download_step'):
-        job_input['audio'] = download_files_from_urls(job['id'], [job_input['audio']])[0]
+        if job_input['audio'][:4] == "bin:":
+            # Raw binary data, in a string
+            data = bytes(job_input['audio'][4:], "iso-8859-1")
+            job_input['audio'] = "data:application/octet-stream;base64," + base64.b64encode(data).decode("ascii")
+        elif job_input['audio'][:5] != "data:":
+            job_input['audio'] = download_files_from_urls(job['id'], [job_input['audio']])[0]
 
     with rp_debugger.LineTimer('prediction_step'):
         whisper_results = MODEL.predict(
