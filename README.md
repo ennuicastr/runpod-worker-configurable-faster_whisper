@@ -16,7 +16,7 @@ This repository contains the [Faster Whisper](https://github.com/guillaumekln/fa
 |-------------------------------------|-------|-------------------------------------------------------------------------------------------------------------|
 | `audio`                             | Path  | Audio file                                                                                                  |
 | `model`                             | str   | Choose a Whisper model. Choices: "tiny", "base", "small", "medium", "large-v1", "large-v2". Default: "base" |
-| `transcription`                     | str   | Choose the format for the transcription. Choices: "plain text", "srt", "vtt". Default: "plain text"         |
+| `transcription`                     | str   | Choose the format for the transcription. Choices: "none", "srt", "vtt". Default: "none". Note that a JSON version of the transcription is always included. |
 | `translate`                         | bool  | Translate the text to English when set to True. Default: False                                              |
 | `language`                          | str   | Language spoken in the audio, specify None to perform language detection. Default: None                     |
 | `temperature`                       | float | Temperature to use for sampling. Default: 0                                                                 |
@@ -31,6 +31,9 @@ This repository contains the [Faster Whisper](https://github.com/guillaumekln/fa
 | `compression_ratio_threshold`       | float | If the gzip compression ratio is higher than this value, treat the decoding as failed. Default: 2.4         |
 | `logprob_threshold`                 | float | If the average log probability is lower than this value, treat the decoding as failed. Default: -1.0        |
 | `no_speech_threshold`               | float | If the probability of the token is higher than this value, consider the segment as silence. Default: 0.6    |
+| `word_timestamps`                   | bool  | Include per-word timestamps as `result.words`. Default: false                                               |
+| `vad_filter`                        | bool  | Use the VAD filter to avoid transcribing non-speech. Default: true                                          |
+| `detailed`                          | bool  | Include irrelevant details in the segments returned. Default: false                                         |
 
 ## Test Inputs
 

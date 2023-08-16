@@ -11,7 +11,7 @@ INPUT_VALIDATIONS = {
     'transcription': {
         'type': str,
         'required': False,
-        'default': 'plain_text'
+        'default': 'none'
     },
     'translate': {
         'type': bool,
@@ -82,5 +82,20 @@ INPUT_VALIDATIONS = {
         'type': float,
         'required': False,
         'default': 0.6
+    },
+    'word_timestamps': {
+        'type': bool,
+        'required': False,
+        'default': False
+    },
+    'vad_filter': {
+        'type': bool,
+        'required': False,
+        'default': True
+    },
+    'detailed': {
+        'type': bool,
+        'required': False,
+        'default': False
     }
 }

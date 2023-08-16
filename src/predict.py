@@ -45,7 +45,7 @@ class Predictor:
         self,
         audio,
         model_name="base",
-        transcription="plain text",
+        transcription="none",
         translate=False,
         language=None,
         temperature=0,
@@ -60,6 +60,9 @@ class Predictor:
         compression_ratio_threshold=2.4,
         logprob_threshold=-1.0,
         no_speech_threshold=0.6,
+        word_timestamps=False,
+        vad_filter=True,
+        detailed=False,
     ):
         """
         Run a single prediction on the model
@@ -91,7 +94,8 @@ class Predictor:
                                                suppress_tokens=[-1],
                                                without_timestamps=False,
                                                max_initial_timestamp=1.0,
-                                               word_timestamps=False
+                                               word_timestamps=word_timestamps,
+                                               vad_filter=vad_filter
                                                ))
 
         segments = list(segments)
@@ -105,6 +109,8 @@ class Predictor:
 
         if transcription == "srt":
             transcription = write_srt(segments)
+        elif transcription == "none":
+            transcription = None
         else:
             transcription = write_vtt(segments)
 
@@ -112,17 +118,36 @@ class Predictor:
             translation_segments, translation_info = model.transcribe(str(audio), task="translate", temperature=temperature
                                                                       )
 
-        return {
-            "segments": format_segments(segments),
+        ret = {
             "detected_language": info.language,
             "transcription": transcription,
             "translation": write_srt(translation_segments) if translate else None,
         }
 
+        if detailed:
+            ret["segments"] = format_segments_detailed(segments)
+        else:
+            ret["segments"] = format_segments(segments)
+
+        if word_timestamps:
+            ret["words"] = format_words(segments)
+
+        return ret
+
 
 def format_segments(transcript):
     '''
     Format the segments to be returned in the API response.
+    '''
+    return [{
+        "start": segment.start,
+        "end": segment.end,
+        "text": segment.text
+    } for segment in transcript]
+
+def format_segments_detailed(transcript):
+    '''
+    Format the segments to be returned in the API response, extra details.
     '''
     return [{
         "id": segment.id,
@@ -136,6 +161,22 @@ def format_segments(transcript):
         "compression_ratio": segment.compression_ratio,
         "no_speech_prob": segment.no_speech_prob
     } for segment in transcript]
+
+def format_words(transcript):
+    '''
+    Format the words to be returned in the API response.
+    '''
+    return [format_segment_words(segment) for segment in transcript]
+
+def format_segment_words(segment):
+    '''
+    Format the words for a single segment.
+    '''
+    return [{
+        "start": word.start,
+        "end": word.end,
+        "word": word.word
+    } for word in segment.words]
 
 
 def write_vtt(transcript):
