@@ -15,6 +15,7 @@ This repository contains the [Faster Whisper](https://github.com/guillaumekln/fa
 | Input                               | Type  | Description                                                                                                 |
 |-------------------------------------|-------|-------------------------------------------------------------------------------------------------------------|
 | `audio`                             | Path  | Audio file                                                                                                  |
+| `audios`                            | array of paths | Multiple audio files. One of `audio` or `audios` must be set, not both.                            |
 | `model`                             | str   | Choose a Whisper model. Choices: "tiny", "base", "small", "medium", "large-v1", "large-v2". Default: "base" |
 | `transcription`                     | str   | Choose the format for the transcription. Choices: "none", "srt", "vtt". Default: "none". Note that a JSON version of the transcription is always included. |
 | `translate`                         | bool  | Translate the text to English when set to True. Default: False                                              |

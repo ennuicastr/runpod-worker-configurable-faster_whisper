@@ -31,24 +31,19 @@ def run_whisper_job(job):
     '''
     job_input = job['input']
 
-    with rp_debugger.LineTimer('validation_step'):
-        input_validation = validate(job_input, INPUT_VALIDATIONS)
-
-        if 'errors' in input_validation:
-            return {"error": input_validation['errors']}
-        job_input = input_validation['validated_input']
-
-    with rp_debugger.LineTimer('download_step'):
-        if job_input['audio'][:4] == "bin:":
+    def download_uri(audio):
+        if audio[:4] == "bin:":
             # Raw binary data, in a string
-            data = bytes(job_input['audio'][4:], "iso-8859-1")
-            job_input['audio'] = "data:application/octet-stream;base64," + base64.b64encode(data).decode("ascii")
-        elif job_input['audio'][:5] != "data:":
-            job_input['audio'] = download_files_from_urls(job['id'], [job_input['audio']])[0]
+            data = bytes(audio[4:], "iso-8859-1")
+            return "data:application/octet-stream;base64," + base64.b64encode(data).decode("ascii")
+        elif audio[:5] != "data:":
+            return download_files_from_urls(job['id'], [audio])[0]
+        else:
+            return audio
 
-    with rp_debugger.LineTimer('prediction_step'):
-        whisper_results = MODEL.predict(
-            audio=job_input["audio"],
+    def predict_uri(audio):
+        return MODEL.predict(
+            audio=audio,
             model_name=job_input["model"],
             transcription=job_input["transcription"],
             translate=job_input["translate"],
@@ -69,6 +64,25 @@ def run_whisper_job(job):
             vad_filter=job_input["vad_filter"],
             detailed=job_input["detailed"],
         )
+
+    with rp_debugger.LineTimer('validation_step'):
+        input_validation = validate(job_input, INPUT_VALIDATIONS)
+
+        if 'errors' in input_validation:
+            return {"error": input_validation['errors']}
+        job_input = input_validation['validated_input']
+
+    with rp_debugger.LineTimer('download_step'):
+        if job_input['audio'] == '':
+            job_input['audios'] = list(map(download_uri, job_input['audios']))
+        else:
+            job_input['audio'] = download_uri(job_input['audio'])
+
+    with rp_debugger.LineTimer('prediction_step'):
+        if job_input['audio'] == '':
+            whisper_results = list(map(predict_uri, job_input['audios']))
+        else:
+            whisper_results = predict_uri(job_input['audio'])
 
     with rp_debugger.LineTimer('cleanup_step'):
         rp_cleanup.clean(['input_objects'])
