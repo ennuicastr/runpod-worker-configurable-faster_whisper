@@ -175,7 +175,8 @@ def format_segment_words(segment):
     return [{
         "start": word.start,
         "end": word.end,
-        "word": word.word
+        "word": word.word,
+        "probability": word.probability
     } for word in segment.words]
 
 
